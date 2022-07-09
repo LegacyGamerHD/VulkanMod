@@ -5,7 +5,6 @@ import net.vulkanmod.vulkan.memory.StagingBuffer;
 import net.vulkanmod.vulkan.util.VUtil;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.system.Pointer;
 import org.lwjgl.util.vma.*;
 import org.lwjgl.vulkan.*;
 
@@ -352,11 +351,14 @@ public class Vulkan {
 
             VkPhysicalDevice device = null;
 
-            for(int i = 0;i < ppPhysicalDevices.capacity();i++) {
+            for(int i = 0; i < ppPhysicalDevices.capacity();i++) {
 
                 device = new VkPhysicalDevice(ppPhysicalDevices.get(i), instance);
 
-                if(isDeviceSuitable(device)) {
+                VkPhysicalDeviceProperties deviceProperties = VkPhysicalDeviceProperties.calloc(stack);
+                vkGetPhysicalDeviceProperties(device, deviceProperties);
+
+                if(isDeviceSuitable(device) && deviceProperties.deviceType() == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
                     break;
                 }
             }
@@ -689,12 +691,23 @@ public class Vulkan {
 
 
     private static VkSurfaceFormatKHR chooseSwapSurfaceFormat(VkSurfaceFormatKHR.Buffer availableFormats) {
-        return availableFormats.stream()
-//                .filter(availableFormat -> availableFormat.format() == VK_FORMAT_B8G8R8_SRGB)
-                .filter(availableFormat -> availableFormat.format() == VK_FORMAT_R8G8B8A8_UNORM)
-                .filter(availableFormat -> availableFormat.colorSpace() == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
-                .findAny()
-                .orElse(availableFormats.get(0));
+        List<VkSurfaceFormatKHR> list = availableFormats.stream().toList();
+
+        VkSurfaceFormatKHR format = list.get(0);
+        boolean flag = true;
+
+        for (VkSurfaceFormatKHR availableFormat : list) {
+            if (availableFormat.format() == VK_FORMAT_R8G8B8A8_UNORM && availableFormat.colorSpace() == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+                return availableFormat;
+
+            if (availableFormat.format() == VK_FORMAT_B8G8R8A8_UNORM && availableFormat.colorSpace() == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+                format = availableFormat;
+                flag = false;
+            }
+        }
+
+        if(flag) System.out.println("Non-optimal surface format.");
+        return format;
     }
 
     private static int chooseSwapPresentMode(IntBuffer availablePresentModes) {
