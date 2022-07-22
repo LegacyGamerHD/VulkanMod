@@ -55,7 +55,7 @@ public class Vulkan {
 
     public static final int INDEX_SIZE = Short.BYTES;
 
-    private static final boolean ENABLE_VALIDATION_LAYERS = false;
+    private static final boolean ENABLE_VALIDATION_LAYERS = Boolean.parseBoolean(System.getProperty("vulkanmod.validation", "false"));
 //    private static final boolean ENABLE_VALIDATION_LAYERS = true;
 
     private static final Set<String> VALIDATION_LAYERS;
@@ -411,8 +411,9 @@ public class Vulkan {
 
             PointerBuffer pDevice = stack.pointers(VK_NULL_HANDLE);
 
-            if(vkCreateDevice(physicalDevice, createInfo, null, pDevice) != VK_SUCCESS) {
-                throw new RuntimeException("Failed to create logical device");
+            int result = vkCreateDevice(physicalDevice, createInfo, null, pDevice);
+            if(result != VK_SUCCESS) {
+                throw new RuntimeException("Failed to create logical device: " + result);
             }
 
             device = new VkDevice(pDevice.get(0), physicalDevice, createInfo);
@@ -446,7 +447,9 @@ public class Vulkan {
             allocatorCreateInfo.physicalDevice(physicalDevice);
             allocatorCreateInfo.device(device);
             allocatorCreateInfo.pVulkanFunctions(vulkanFunctions);
-            allocatorCreateInfo.instance(instance);
+            try {
+                allocatorCreateInfo.instance(instance);
+            } catch (NoSuchMethodError e) {}
 
             PointerBuffer pAllocator = stack.pointers(VK_NULL_HANDLE);
 
