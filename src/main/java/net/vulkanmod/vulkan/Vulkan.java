@@ -492,8 +492,8 @@ public class Vulkan {
             int presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
             VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
 
-            IntBuffer imageCount = stack.ints(2);
-
+            IntBuffer imageCount = stack.ints(Math.max(swapChainSupport.capabilities.minImageCount(), 2));
+            
             if(swapChainSupport.capabilities.maxImageCount() > 0 && imageCount.get(0) > swapChainSupport.capabilities.maxImageCount()) {
                 imageCount.put(0, swapChainSupport.capabilities.maxImageCount());
             }
