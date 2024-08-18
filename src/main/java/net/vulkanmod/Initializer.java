@@ -18,16 +18,7 @@ public class Initializer implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
-		if (System.getenv("POJAV_ENVIRON") != null)
-		{
-			LOGGER.error("You can't use this mod on Pojav dummy!");
-			System.exit(-69);
-		}
-		if (System.getenv("SCL_ENVIRON") != null)
-		{
-			LOGGER.info("Welcome to the experimental SCL builds of VulkanMod!");
-			LOGGER.warn("This is an unnofficial mod made by the developer of SolCraftLauncher and isn't meant to be used by anyone. This mod may not work for you if you aren't meant to have it.");
-		}
+
 		VERSION = FabricLoader.getInstance()
 				.getModContainer("vulkanmod")
 				.get()
